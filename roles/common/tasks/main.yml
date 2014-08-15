@@ -1,0 +1,23 @@
+---
+
+  - name: Downloading and Enabling EPEL
+    action: command rpm -Uvh --replacepkgs http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+
+  - name: copy nginx.repo
+    copy: src=nginx.repo dest=/etc/yum.repos.d/nginx.repo
+
+  - name: Install nginx
+    yum: name=nginx state=latest
+
+  - name: Install git, node, npm redis
+    yum: name={{item}} state=latest
+    with_items:
+      - git
+      - nodejs
+      - npm
+      - redis
+
+  - name: Install CoffeeScript
+    npm: name=coffee-script global=yes
+    notify:
+      - start redis

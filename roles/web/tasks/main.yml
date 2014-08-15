@@ -1,0 +1,49 @@
+---
+
+  - name: copy server key
+    copy: src=server.key dest={{web_ssl_key}} mode=644
+    notify: restart nginx
+    tags: web_ssl_key
+
+  - name: copy server certificate
+    copy: src=server.crt dest={{web_ssl_cert}} mode=640
+    notify: restart nginx
+    tags: web_ssl_cert
+
+  - name: copy nginx configuration
+    template: src=default.conf.j2 dest=/etc/nginx/conf.d/default.conf
+    notify: restart nginx
+    tags: nginx_conf
+
+  - name: Git clone repo
+    git: repo={{repository}} version={{git_version}} dest=/srv/
+
+  - name: Copy config file
+    copy: src=config.coffee dest=/srv/config.coffee
+
+  - name: install dependencies
+    npm: path=/srv
+
+  - name: install grunt
+    npm: name=grunt-cli global=yes
+
+  - name: install forever
+    npm: name=forever global=yes
+
+  - name: generate assets
+    command: grunt
+    args:
+      chdir: /srv
+
+  - name: "Check list of Node.js apps running."
+    command: forever list
+    register: forever_list
+    changed_when: false
+
+  - name: "Start Node.js app if not started"
+    command: forever start -c coffee /srv/lib/oauthd.coffee
+    when: "forever_list.stdout.find('/srv/lib/oauthd.coffee') == -1"
+
+  - name: "Re-Start Node.js app if already started"
+    command: forever start -c coffee /srv/lib/oauthd.coffee
+    when: "forever_list.stdout.find('/srv/lib/oauthd.coffee') == 1"

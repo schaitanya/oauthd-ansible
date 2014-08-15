@@ -1,0 +1,9 @@
+---
+
+repository:       https://github.com/schaitanya/oauthd.git
+git_version:      production
+web_server_name:  oauth.chaitanya.io
+web_error_log:    /srv/oauth-error.log
+web_ssl_cert:     /srv/server.crt
+web_ssl_key:      /srv/server.key
+web_port:         3001
